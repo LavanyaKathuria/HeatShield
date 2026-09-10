@@ -1,0 +1,17 @@
+# Environments
+venv/
+env/
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases & Cache
+.cache.sqlite
+.pytest_cache/
+
+# Data & Models (Optional but recommended if files are > 50MB)
+# Remove the # below if you want to keep data/models local
+data/raw/
