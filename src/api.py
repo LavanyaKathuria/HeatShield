@@ -1,39 +1,150 @@
-import pandas as pd
+﻿from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
-from fastapi import FastAPI
-
-from src.weather.weather_pipeline import (
-    get_ward_weather_mortality_risk
+from src.weather.forecast_cache import (
+    get_cached_or_compute,
+    get_cache_generated_at,
 )
-
-from src.weather.ward_weather import (
-    WardWeatherFetcher
-)
-
-from src.weather.heatwave_detector import (
-    HeatwaveDetector
-)
-
-from src.vulnerability.ward_risk import (
-    WardRiskModel
-)
-
-from src.mortality.mortality_engine import (
-    MortalityRuleEngine
-)
-
+from src.risk import levels
 
 app = FastAPI(
     title="HEATSHIELD API",
-    description=(
-        "Ahmedabad heatwave risk and "
-        "resource prioritization system"
-    ),
-    version="1.0"
+    description="Localized heat risk, mortality risk and personalised alerting",
+    version="2.0",
 )
 
+# Frontend dev server runs on a different origin. Kept to specific dev
+# ports rather than "*" - widen when a real deployment domain exists.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
-AHMEDABAD_POPULATION = 9_432_449
+# The problem statement asks for forecasts "3 to 5 days in advance" -
+# enforced as a hard bound on every endpoint, not just a default.
+MIN_FORECAST_DAYS = 3
+MAX_FORECAST_DAYS = 5
+DEFAULT_FORECAST_DAYS = 5
+
+
+def forecast_days_param(default=DEFAULT_FORECAST_DAYS):
+    return Query(
+        default=default,
+        ge=MIN_FORECAST_DAYS,
+        le=MAX_FORECAST_DAYS,
+        description="Forecast horizon in days (3-5, per the problem statement).",
+    )
+
+
+# Response text is never rendered here. Endpoints return stable keys and
+# the caller supplies the language, so the API cannot ship English-only
+# copy no matter which interface calls it.
+def recommended_action(peak_utci_stress_category):
+
+    if peak_utci_stress_category in (
+        "very strong heat stress", "extreme heat stress"
+    ):
+        return "deploy_mobile_unit"
+
+    if peak_utci_stress_category == "strong heat stress":
+        return "increase_ambulance_cooling"
+
+    if peak_utci_stress_category == "moderate heat stress":
+        return "increase_monitoring"
+
+    return "routine_monitoring"
+
+
+WARD_FIELDS = [
+    "ward_id", "ward_name", "peak_date",
+    "peak_utci_c", "peak_utci_stress_category",
+    "utci_normal_c", "utci_anomaly_c",
+    "wbgt_shade_c", "heat_index_c",
+    "ehf", "event_severity",
+    "citywide_equivalent_excess_deaths",
+    "elderly_per_100k", "highest_risk_group",
+    "alert_level", "group_levels",
+    "work_rest_key",
+    "is_beyond_observed_range",
+    "recommended_action_key",
+]
+
+TIMELINE_FIELDS = [
+    "ward_id", "ward_name", "date",
+    "utci_c", "utci_stress_category",
+    "utci_normal_c", "utci_anomaly_c", "night_anomaly_c",
+    "tmax", "tmin",
+    "afternoon_humidity_pct", "afternoon_wind_ms", "afternoon_solar_wm2",
+    "wbgt_shade_c", "heat_index_c",
+    "ehf", "event_severity",
+    "elderly_per_100k", "highest_risk_group",
+    "alert_level", "group_levels",
+    "work_rest_key",
+    "recommended_action_key",
+]
+
+
+def _records(frame, columns):
+    """
+    DataFrame rows as JSON-safe dicts.
+
+    pandas turns a Python None into NaN, and NaN is not valid JSON - it
+    serialises as a bare `NaN` token that strict parsers reject, which
+    surfaces as an opaque 500. Legitimately-absent values (no
+    highest-risk group on a quiet day, no EHF before the lookback fills)
+    are converted back to null here.
+    """
+
+    payload = frame[columns].astype(object).where(frame[columns].notna(), None)
+
+    return payload.to_dict(orient="records")
+
+
+def citywide_summary(citywide_burden):
+    """
+    The citywide picture.
+
+    Mortality is reported CITYWIDE only. Ward-level death counts do not
+    exist in any data source and are never produced here - wards carry
+    thermal stress, anomaly and relative risk, which genuinely are
+    ward-resolved.
+    """
+
+    return {
+        "heatwave_detected": citywide_burden["heatwave_detected"],
+        "heatwave_duration_days": citywide_burden["heatwave_duration_days"],
+        "event_severity": citywide_burden["event_severity"],
+        "peak_alert_level": citywide_burden["peak_alert_level"],
+        "estimated_total_excess_deaths":
+            citywide_burden["total_excess_deaths"],
+        "estimated_total_excess_deaths_low":
+            citywide_burden["total_excess_deaths_low"],
+        "estimated_total_excess_deaths_high":
+            citywide_burden["total_excess_deaths_high"],
+        "daily": citywide_burden["daily"],
+        "scope": "citywide",
+        "forecast_generated_at": get_cache_generated_at(),
+    }
+
+
+def _wards_payload(ward_summary):
+
+    wards = ward_summary.copy()
+
+    wards["recommended_action_key"] = (
+        wards["peak_utci_stress_category"].apply(recommended_action)
+    )
+
+    ranked = wards.sort_values(
+        "citywide_equivalent_excess_deaths", ascending=False
+    )
+
+    return _records(ranked, WARD_FIELDS)
 
 
 # ==================================================
@@ -42,57 +153,7 @@ AHMEDABAD_POPULATION = 9_432_449
 
 @app.get("/")
 def root():
-
-    return {
-        "project": "HEATSHIELD",
-        "city": "Ahmedabad",
-        "status": "running"
-    }
-
-
-# ==================================================
-# WEATHER RISK
-# ==================================================
-
-@app.get("/weather-risk")
-def weather_risk(
-    forecast_days: int = 3
-):
-
-    (
-        weather_df,
-        ward_heat_risk,
-        citywide_mortality
-    ) = get_ward_weather_mortality_risk(
-        forecast_days=forecast_days
-    )
-
-    return {
-
-        "forecast_days":
-            forecast_days,
-
-        "wards":
-            ward_heat_risk.to_dict(
-                orient="records"
-            ),
-
-        "citywide_mortality": {
-
-            "heatwave_duration_days":
-                citywide_mortality[
-                    "heatwave_duration_days"
-                ],
-
-            "total_excess_deaths":
-                round(
-                    citywide_mortality[
-                        "total_excess_deaths"
-                    ],
-                    2
-                )
-        }
-    }
+    return {"project": "HEATSHIELD", "status": "running", "version": "2.0"}
 
 
 # ==================================================
@@ -100,518 +161,130 @@ def weather_risk(
 # ==================================================
 
 @app.get("/ward-priority")
-def ward_priority():
+def ward_priority(forecast_days: int = forecast_days_param()):
 
-    (
-        weather_df,
-        ward_heat_risk,
-        citywide_mortality
-    ) = get_ward_weather_mortality_risk(
-        forecast_days=3
+    _, ward_summary, citywide_burden, _ = get_cached_or_compute(
+        forecast_days=forecast_days
     )
-
-    model = WardRiskModel()
-
-    wards = model.predict_clusters()
-
-    wards = model.calculate_priority_scores(
-        ward_heat_risk
-    )
-
-    ranked = model.get_ranked_wards()
 
     return {
-
-        "citywide_mortality": {
-
-            "heatwave_duration_days":
-                citywide_mortality[
-                    "heatwave_duration_days"
-                ],
-
-            "estimated_total_excess_deaths":
-                round(
-                    citywide_mortality[
-                        "total_excess_deaths"
-                    ],
-                    2
-                )
-        },
-
-        "wards": ranked[
-            [
-                "ward_id",
-                "ward_name",
-
-                "final_priority_score",
-                "final_priority_category",
-
-                "healthcare_vulnerability",
-
-                "hospital_count",
-                "health_centre_count",
-                "total_health_facilities",
-
-                "healthcare_facilities_per_km2",
-
-                "heat_risk",
-
-                "city_demographic_vulnerability",
-
-                "recommended_action"
-            ]
-        ].to_dict(
-            orient="records"
-        )
+        "forecast_days": forecast_days,
+        "citywide": citywide_summary(citywide_burden),
+        "wards": _wards_payload(ward_summary),
     }
 
 
 # ==================================================
-# HEATWAVE DETECTION
+# WARD FORECAST TIMELINE  (per ward, per day)
 # ==================================================
 
-@app.get("/heatwave-detection")
-def heatwave_detection(
-    forecast_days: int = 7
-):
+@app.get("/ward-forecast-timeline")
+def ward_forecast_timeline(forecast_days: int = forecast_days_param()):
 
-    fetcher = WardWeatherFetcher()
+    weather_df, _, _, _ = get_cached_or_compute(forecast_days=forecast_days)
 
-    weather = (
-        fetcher.fetch_ward_forecast(
-            forecast_days=forecast_days
-        )
-    )
-
-    # Citywide daily average
-    city_weather = (
-        weather
-        .groupby(
-            "date",
-            as_index=False
-        )
-        .agg({
-            "tmax": "mean",
-            "tmin": "mean"
-        })
-        .sort_values("date")
-    )
-
-    detector = HeatwaveDetector()
-
-    events = detector.detect(
-        city_weather.to_dict(
-            orient="records"
-        )
+    days = weather_df.copy()
+    days["recommended_action_key"] = (
+        days["utci_stress_category"].apply(recommended_action)
     )
 
     return {
-
-        "forecast_days":
-            forecast_days,
-
-        "heatwave_detected":
-            len(events) > 0,
-
-        "events": events
+        "forecast_days": forecast_days,
+        "dates": sorted(days["date"].unique().tolist()),
+        "days": _records(days, TIMELINE_FIELDS),
     }
 
 
 # ==================================================
-# HEATWAVE PRIORITY
+# HEAT EVENT
 # ==================================================
 
-@app.get("/heatwave-priority")
-def heatwave_priority(
-    forecast_days: int = 7
-):
+@app.get("/heat-event")
+def heat_event(forecast_days: int = forecast_days_param()):
+    """
+    Whether an unusual heat event is forecast, and how severe.
 
-    # --------------------------------------------------
-    # 1. FETCH WARD WEATHER
-    # --------------------------------------------------
+    "Unusual" is measured against this city's own 30-year record, not an
+    absolute temperature - which is why an ordinary hot-season afternoon
+    does not register as an event.
+    """
 
-    fetcher = WardWeatherFetcher()
-
-    weather = (
-        fetcher.fetch_ward_forecast(
-            forecast_days=forecast_days
-        )
+    _, ward_summary, citywide_burden, citywide_records = get_cached_or_compute(
+        forecast_days=forecast_days
     )
 
-    # --------------------------------------------------
-    # 2. CITY WEATHER
-    # --------------------------------------------------
-
-    city_weather = (
-        weather
-        .groupby(
-            "date",
-            as_index=False
-        )
-        .agg({
-            "tmax": "mean",
-            "tmin": "mean"
-        })
-        .sort_values("date")
-    )
-
-    # --------------------------------------------------
-    # 3. DETECT HEATWAVE
-    # --------------------------------------------------
-
-    detector = HeatwaveDetector()
-
-    heatwave_events = detector.detect(
-        city_weather.to_dict(
-            orient="records"
-        )
-    )
-
-    # --------------------------------------------------
-    # NO HEATWAVE
-    # --------------------------------------------------
-
-    if not heatwave_events:
-
-        return {
-
-            "heatwave_detected":
-                False,
-
-            "message":
-                "No heatwave detected in forecast.",
-
-            "forecast_days":
-                forecast_days,
-
-            "wards": []
+    event_days = [
+        {
+            "date": record["date"],
+            "utci_c": record["utci_c"],
+            "ehf": record["ehf"],
+            "severity": record["event_severity"],
         }
-
-    # --------------------------------------------------
-    # 4. SELECT LONGEST EVENT
-    # --------------------------------------------------
-
-    heatwave = max(
-        heatwave_events,
-        key=len
-    )
-
-    heatwave_dates = {
-        day["date"]
-        for day in heatwave
-    }
-
-    # --------------------------------------------------
-    # 5. MORTALITY ENGINE
-    # --------------------------------------------------
-
-    mortality = MortalityRuleEngine(
-        AHMEDABAD_POPULATION
-    )
-
-    citywide_records = (
-        city_weather[
-            city_weather["date"].isin(
-                heatwave_dates
-            )
-        ]
-        .copy()
-    )
-
-    # Add lag values
-    full_city_weather = (
-        city_weather
-        .sort_values("date")
-        .reset_index(drop=True)
-    )
-
-    selected_records = []
-
-    for date in heatwave_dates:
-
-        matches = full_city_weather[
-            full_city_weather["date"] == date
-        ]
-
-        if matches.empty:
-            continue
-
-        idx = matches.index[0]
-
-        current = (
-            full_city_weather
-            .iloc[idx]
-        )
-
-        previous = (
-            full_city_weather
-            .iloc[idx - 1]
-            if idx >= 1
-            else current
-        )
-
-        two_days = (
-            full_city_weather
-            .iloc[idx - 2]
-            if idx >= 2
-            else current
-        )
-
-        selected_records.append({
-
-            "date": date,
-
-            "tmax":
-                float(current["tmax"]),
-
-            "tmin":
-                float(current["tmin"]),
-
-            "previous_tmax":
-                float(previous["tmax"]),
-
-            "previous_tmin":
-                float(previous["tmin"]),
-
-            "two_days_ago_tmax":
-                float(two_days["tmax"]),
-
-            "two_days_ago_tmin":
-                float(two_days["tmin"])
-        })
-
-    selected_records = sorted(
-        selected_records,
-        key=lambda x: x["date"]
-    )
-
-    citywide_mortality = (
-        mortality.calculate_heatwave_excess_deaths(
-            selected_records
-        )
-    )
-
-    # --------------------------------------------------
-    # 6. WARD HEAT RISK
-    # --------------------------------------------------
-
-    ward_results = []
-
-    for ward_id, group in weather.groupby(
-        "ward_id"
-    ):
-
-        ward_name = (
-            group["ward_name"].iloc[0]
-        )
-
-        ward_group = (
-            group[
-                group["date"].isin(
-                    heatwave_dates
-                )
-            ]
-            .sort_values("date")
-        )
-
-        if ward_group.empty:
-            continue
-
-        max_risk = 0.0
-
-        for _, row in ward_group.iterrows():
-
-            result = (
-                mortality.calculate_relative_risk(
-                    tmax=row["tmax"],
-                    tmin=row["tmin"],
-                    previous_tmax=
-                        row["previous_tmax"],
-                    previous_tmin=
-                        row["previous_tmin"],
-                    two_days_ago_tmax=
-                        row["two_days_ago_tmax"],
-                    two_days_ago_tmin=
-                        row["two_days_ago_tmin"]
-                )
-            )
-
-            risk = (
-                result - 1
-            ) * 100
-
-            max_risk = max(
-                max_risk,
-                risk
-            )
-
-        ward_results.append({
-
-            "ward_id":
-                ward_id,
-
-            "ward_name":
-                ward_name,
-
-            "risk_increase_percent":
-                max_risk
-        })
-
-    ward_heat = pd.DataFrame(
-        ward_results
-    )
-
-    # --------------------------------------------------
-    # 7. NORMALIZE HEAT RISK
-    # --------------------------------------------------
-
-    max_risk = (
-        ward_heat[
-            "risk_increase_percent"
-        ].max()
-    )
-
-    if max_risk > 0:
-
-        ward_heat["heat_risk"] = (
-            ward_heat[
-                "risk_increase_percent"
-            ] / max_risk
-        )
-
-    else:
-
-        ward_heat["heat_risk"] = 0.0
-
-    # --------------------------------------------------
-    # 8. WARD MODEL
-    # --------------------------------------------------
-
-    model = WardRiskModel()
-
-    wards = model.predict_clusters()
-
-    wards = model.calculate_priority_scores(
-        ward_heat
-    )
-
-    # --------------------------------------------------
-    # 9. RECOMMENDATIONS
-    # --------------------------------------------------
-
-    def recommendation(row):
-
-        score = (
-            row["final_priority_score"]
-        )
-
-        if score >= 0.75:
-
-            return (
-                "Deploy mobile medical unit, "
-                "ambulance support, temporary "
-                "cooling centre and emergency "
-                "water supply"
-            )
-
-        if score >= 0.60:
-
-            return (
-                "Increase ambulance coverage "
-                "and establish temporary cooling "
-                "and hydration support"
-            )
-
-        if score >= 0.40:
-
-            return (
-                "Increase heatwave monitoring "
-                "and prepare ambulance and "
-                "cooling support"
-            )
-
-        return (
-            "Routine heatwave monitoring "
-            "and preparedness"
-        )
-
-    wards["recommended_action"] = (
-        wards.apply(
-            recommendation,
-            axis=1
-        )
-    )
-
-    # --------------------------------------------------
-    # 10. RANK
-    # --------------------------------------------------
-
-    wards = (
-        wards
-        .sort_values(
-            "final_priority_score",
-            ascending=False
-        )
-    )
-
-    # --------------------------------------------------
-    # 11. RESPONSE
-    # --------------------------------------------------
+        for record in citywide_records
+        if record["ehf"] and record["ehf"] > 0
+    ]
 
     return {
-
-        "heatwave_detected":
-            True,
-
-        "heatwave_start":
-            min(heatwave_dates),
-
-        "heatwave_end":
-            max(heatwave_dates),
-
-        "heatwave_duration_days":
-            len(heatwave),
-
-        "citywide_mortality": {
-
-            "estimated_total_excess_deaths":
-                round(
-                    citywide_mortality[
-                        "total_excess_deaths"
-                    ],
-                    2
-                ),
-
-            "daily_results":
-                citywide_mortality[
-                    "daily_results"
-                ]
-        },
-
-        "wards": wards[
-            [
-                "ward_id",
-                "ward_name",
-
-                "final_priority_score",
-                "final_priority_category",
-
-                "healthcare_vulnerability",
-
-                "hospital_count",
-                "health_centre_count",
-                "total_health_facilities",
-
-                "healthcare_facilities_per_km2",
-
-                "heat_risk",
-                "risk_increase_percent",
-
-                "city_demographic_vulnerability",
-
-                "recommended_action"
-            ]
-        ].to_dict(
-            orient="records"
-        )
+        "forecast_days": forecast_days,
+        "heatwave_detected": len(event_days) > 0,
+        "event_severity": citywide_burden["event_severity"],
+        "days": event_days,
+        "citywide": citywide_summary(citywide_burden),
+        "wards_affected": [
+            ward["ward_id"]
+            for ward in _wards_payload(ward_summary)
+            if ward["alert_level"] != "none"
+        ],
     }
+
+
+# ==================================================
+# RISK LEVEL DEFINITIONS
+# ==================================================
+
+@app.get("/risk-levels")
+def risk_levels():
+    """
+    The thresholds behind every level this API reports, published rather
+    than hidden.
+
+    A risk system that will not say what made it fire cannot be audited
+    by the health department relying on it. Each group is scored on the
+    measure that governs its own response - mortality is the wrong
+    endpoint for most of them.
+    """
+
+    return {
+        "levels": levels.LEVELS,
+        "groups": {
+            "elderly": {
+                "metric": "excess_deaths_per_100k_per_day",
+                "thresholds": levels.ELDERLY_RISK_PER_100K,
+                "basis": "local event-day distribution, 30-year record",
+            },
+            "outdoor_workers": {
+                "metric": "wbgt_c",
+                "thresholds": levels.OUTDOOR_WBGT_C,
+                "basis": "ISO 7243 / NIOSH work-rest limits",
+            },
+            "children": {
+                "metric": "utci_c",
+                "thresholds": levels.CHILDREN_UTCI_C,
+                "basis": "official UTCI heat-stress categories",
+            },
+            "general": {
+                "metric": "ehf_multiple_of_local_severe",
+                "thresholds": levels.GENERAL_EHF_MULTIPLE,
+                "basis": "Excess Heat Factor vs local 85th percentile",
+            },
+        },
+        # Standing occupational guidance, which applies every day rather
+        # than only during an event.
+        "work_rest_wbgt": levels.WBGT_WORK_REST,
+        "gated_on_heat_event": True,
+    }
+
+
+
+
+

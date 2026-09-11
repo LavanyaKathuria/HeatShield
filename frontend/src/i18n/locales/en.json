@@ -1,0 +1,224 @@
+{
+  "app": {
+    "name": "HeatShield"
+  },
+  "nav": {
+    "signOut": "Sign out"
+  },
+  "auth": {
+    "login": "Log in",
+    "signup": "Create account",
+    "individualSignup": "I'm an individual",
+    "corporateSignup": "I represent an organization",
+    "corporateSignupDescription": "For city administration, hospitals, schools, and primary health centres coordinating a heat response.",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "age": "Age",
+    "ward": "Ward",
+    "isOutdoorWorker": "I mostly work outdoors",
+    "orgName": "Organization name",
+    "contactName": "Contact person",
+    "haveAccount": "Already have an account?",
+    "serviceUnavailable": "Live services are temporarily unavailable.",
+    "serviceUnavailableDetail": "Some services are temporarily unavailable. Please try again later.",
+    "checkEmailConfirm": "We've sent a confirmation link to your email. Confirm it, then log in.",
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Sign in to see today's heat risk for your area.",
+    "individualSignupTitle": "Create your account",
+    "individualSignupSubtitle": "Get heat safety alerts for yourself and your family.",
+    "corporateSignupTitle": "Register your organization"
+  },
+  "family": {
+    "title": "Family",
+    "description": "Add family members so heat alerts reach them too - useful for anyone who might not check their own phone, like a parent or grandparent.",
+    "optionalNote": "Optional",
+    "add": "Add family member",
+    "remove": "Remove",
+    "empty": "No family members added yet."
+  },
+  "relationships": {
+    "self": "Self",
+    "parent": "Parent",
+    "grandparent": "Grandparent",
+    "child": "Child",
+    "spouse": "Spouse",
+    "sibling": "Sibling",
+    "other": "Family member"
+  },
+  "map": {
+    "errorLoadingBoundaries": "Map data is temporarily unavailable.",
+    "errorLoadingBasemap": "The map couldn't load. Check your connection and try again.",
+    "loadingBoundaries": "Loading the map...",
+    "filterAll": "All wards",
+    "filterAttention": "Needs attention",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "recenter": "Recenter on Ahmedabad",
+    "fullscreen": "Toggle fullscreen"
+  },
+  "mapModes": {
+    "weather": "Weather",
+    "heat_risk": "Heat Risk"
+  },
+  "tiers": {
+    "normal": "Normal",
+    "watch": "Watch",
+    "warning": "Warning",
+    "danger": "Danger",
+    "extreme": "Extreme",
+    "none": "Normal"
+  },
+  "tierDescriptions": {
+    "normal": "Typical conditions. No special precautions needed.",
+    "watch": "Heat is building. Stay aware and check on family members who are more at risk.",
+    "warning": "Significant heat stress. Limit outdoor activity during peak afternoon hours.",
+    "danger": "Dangerous heat. Avoid outdoor exposure and check on at-risk people.",
+    "extreme": "Extreme heat. Avoid all outdoor exposure and check on vulnerable people immediately.",
+    "none": "Typical conditions for this time of year. No special precautions needed."
+  },
+  "weatherBands": {
+    "cool": "Cool",
+    "mild": "Mild",
+    "warm": "Warm",
+    "hot": "Heat",
+    "extreme": "Extreme heat"
+  },
+  "utciCategories": {
+    "extreme cold stress": "Extreme cold stress",
+    "very strong cold stress": "Very strong cold stress",
+    "strong cold stress": "Strong cold stress",
+    "moderate cold stress": "Moderate cold stress",
+    "slight cold stress": "Slight cold stress",
+    "no thermal stress": "No thermal stress",
+    "moderate heat stress": "Moderate heat stress",
+    "strong heat stress": "Strong heat stress",
+    "very strong heat stress": "Very strong heat stress",
+    "extreme heat stress": "Extreme heat stress"
+  },
+  "heatStatus": {
+    "headline": "Heat status",
+    "cityHeadline": "Heat risk across Ahmedabad",
+    "asOf": "Updated {{time}}",
+    "sustainedActive_one": "Heat is expected to stay elevated for {{count}} more day.",
+    "sustainedActive_other": "Heat is expected to stay elevated for {{count}} more days."
+  },
+  "weather": {
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "radiation": "Radiation"
+  },
+  "thermometer": {
+    "title": "Why it feels worse than the temperature suggests",
+    "feelsLike": "Feels like",
+    "humiditySlider": "Humidity"
+  },
+  "forecast": {
+    "title": "Forecast",
+    "today": "Today",
+    "tomorrow": "Tomorrow"
+  },
+  "mortality": {
+    "increaseLabel": "Health risk increase",
+    "citywideLabel": "Estimated additional deaths, citywide",
+    "aboutEstimate": "About this estimate",
+    "overForecast": "Estimated additional deaths over the forecast",
+    "citywideScopeNote": "A citywide estimate. Ward-level death figures do not exist and are not shown."
+  },
+  "place": {
+    "thermalIndex": "Thermal index",
+    "heatRisk": "Heat risk",
+    "atRisk": "Who's at risk",
+    "citywide": "Citywide",
+    "recommendedResponse": "Recommended response",
+    "selectPrompt": "Select a ward on the map to see its conditions.",
+    "normalForDate": "Normal for this date",
+    "aboveNormal": "Above normal",
+    "noGroupAtRisk": "No group is at elevated risk today.",
+    "workplaceHeat": "Workplace heat",
+    "trigger": {
+      "wbgt": "Workplace heat {{value}} — at or above the work/rest threshold",
+      "utci": "Thermal index {{value}} — at or above the outdoor activity threshold",
+      "elderlyRate": "Elevated risk for older residents ({{value}} per 100,000)",
+      "ehf": "Unusual for this time of year (heat factor {{value}})"
+    }
+  },
+  "riskByGroup": {
+    "elderly": "Elderly (65+)",
+    "outdoorWorkers": "Outdoor workers",
+    "excessDeathsUnit": "deaths",
+    "oddsRatioUnit": "x higher risk than indoor workers",
+    "children": "Children (0-14)",
+    "general": "General public"
+  },
+  "recommendedActions": {
+    "deploy_mobile_unit": "Deploy mobile medical units, extend ambulance coverage, and open temporary cooling centres with emergency water supply.",
+    "increase_ambulance_cooling": "Increase ambulance coverage and set up temporary cooling and hydration points.",
+    "increase_monitoring": "Increase heat monitoring and place ambulance and cooling support on standby.",
+    "routine_monitoring": "Routine heat monitoring. No additional response needed."
+  },
+  "citizenActions": {
+    "deploy_mobile_unit": "Avoid going outside. If you must, go out before 10am or after 6pm and carry water.",
+    "increase_ambulance_cooling": "Limit time outdoors during midday. Check on elderly relatives and neighbours.",
+    "increase_monitoring": "Stay hydrated and take breaks in shade if you're outside for long periods.",
+    "routine_monitoring": "No special precautions needed today."
+  },
+  "orgTypes": {
+    "city_admin": "City Administration",
+    "hospital": "Hospital",
+    "school": "School",
+    "primary_health_centre": "Primary Health Centre"
+  },
+  "roles": {
+    "nodal_officer": "Nodal Officer",
+    "ward_officer": "Ward Officer",
+    "hospital": "Hospital",
+    "employer": "Employer"
+  },
+  "methodology": {
+    "title": "About this estimate",
+    "heatStress": "Heat stress (UTCI/WBGT) is calculated from real forecast temperature, humidity, wind, and solar radiation using published thermal-comfort formulas.",
+    "mortality": "Heat-mortality risk is modeled from a published dose-response curve linking heat stress to excess deaths. It is a citywide estimate - ward-level mortality figures don't exist and aren't shown.",
+    "confidence": "Every estimate is shown with its real uncertainty range. A range reflects genuine statistical uncertainty, not imprecision in the app.",
+    "wardScope": "Age and occupation risk breakdowns come from the best available published studies, which are citywide or national - not ward-specific.",
+    "sources": "Data sources",
+    "sourceAllCause": "All-cause mortality share: Wei et al. 2021",
+    "sourceHeatstroke": "Heatstroke-classified deaths: Guin et al. 2025 (India-wide NCRB records)",
+    "sourceOccupational": "Outdoor vs. indoor worker risk: Venugopal et al. 2021 (Tamil Nadu)",
+    "sourceEms": "Emergency response patterns: Ranadive et al. 2021 (Ahmedabad ambulance service)"
+  },
+  "individual": {
+    "heroTitle": "Your heat risk today",
+    "wardPrompt": "Add your ward to your profile to see local conditions."
+  },
+  "alerts": {
+    "title": "Advisories",
+    "citizenEmpty": "No advisories right now.",
+    "citizenEmptyExplainer": "Advisories from your local health department will appear here when issued.",
+    "previewHeatwave": "Preview a heatwave",
+    "exitPreview": "Exit preview",
+    "replayNotice": "Preview only. This replays a real recorded heatwave (May 2024) so you can see what an alert looks like. It is not a live warning.",
+    "appliesTo": "For",
+    "forYou": "you",
+    "happeningNow": "Happening now",
+    "inDays_one": "In {{count}} day",
+    "inDays_other": "In {{count}} days",
+    "showVoice": "Play voice message text",
+    "hideVoice": "Hide voice message",
+    "channel": {
+      "voice": "Voice call",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "dashboard": "In app"
+    }
+  },
+  "common": {
+    "loading": "Loading",
+    "loadingAccount": "Loading your account",
+    "genericError": "Something went wrong.",
+    "forecastUnavailable": "Live heat data is temporarily unavailable.",
+    "retry": "Try again",
+    "close": "Close"
+  }
+}

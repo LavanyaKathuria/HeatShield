@@ -1,17 +1,63 @@
-# Environments
+# ----------------------------------------------------------------------
+# Secrets - never commit these
+# ----------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+frontend/.env
+frontend/.env.local
+
+# ----------------------------------------------------------------------
+# Python
+# ----------------------------------------------------------------------
 venv/
 env/
-.env
-
-# Python Cache
+.venv/
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Databases & Cache
-.cache.sqlite
 .pytest_cache/
+*.egg-info/
 
-# Data & Models (Optional but recommended if files are > 50MB)
-# Remove the # below if you want to keep data/models local
-data/raw/
+# ----------------------------------------------------------------------
+# Node / frontend
+# ----------------------------------------------------------------------
+node_modules/
+frontend/dist/
+frontend/node_modules/
+*.local
+
+# ----------------------------------------------------------------------
+# HTTP caches (regenerate themselves on first run)
+# ----------------------------------------------------------------------
+.cache*.sqlite
+
+# ----------------------------------------------------------------------
+# Generated data
+# ----------------------------------------------------------------------
+# The forecast cache is rebuilt from the live API whenever it is stale.
+data/raw/weather/forecast_cache.json
+
+# The 30-year climatology is ~1 MB and takes several minutes of API calls
+# to rebuild. It IS committed, so a fresh clone works offline - rebuild it
+# with `python scripts/build_climatology.py` only when the method changes.
+# (listed here as documentation; deliberately NOT ignored)
+
+# ----------------------------------------------------------------------
+# Source papers - large binaries. research/SOURCES.md records every
+# number taken from them, so the repository stays self-documenting.
+# ----------------------------------------------------------------------
+research/papers/
+
+# ----------------------------------------------------------------------
+# Editor / OS
+# ----------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------------------------------------
+# Runtime leftovers
+# ----------------------------------------------------------------------
+*.pid
