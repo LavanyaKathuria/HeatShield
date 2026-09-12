@@ -1,17 +1,22 @@
-﻿from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Literal
 
 from src.weather.forecast_cache import (
     get_cached_or_compute,
     get_cache_generated_at,
 )
 from src.risk import levels
+from src.alerts.routes import router as alerts_router
+from src.alerts.automation import lifespan
 
 app = FastAPI(
+    lifespan=lifespan,
     title="HEATSHIELD API",
     description="Localized heat risk, mortality risk and personalised alerting",
     version="2.0",
 )
+app.include_router(alerts_router)
 
 # Frontend dev server runs on a different origin. Kept to specific dev
 # ports rather than "*" - widen when a real deployment domain exists.
@@ -128,7 +133,7 @@ def citywide_summary(citywide_burden):
             citywide_burden["total_excess_deaths_high"],
         "daily": citywide_burden["daily"],
         "scope": "citywide",
-        "forecast_generated_at": get_cache_generated_at(),
+        "forecast_generated_at": None if citywide_burden.get('is_replay') else get_cache_generated_at(),
     }
 
 
@@ -160,17 +165,30 @@ def root():
 # WARD PRIORITY
 # ==================================================
 
-@app.get("/ward-priority")
-def ward_priority(forecast_days: int = forecast_days_param()):
+def risk_data(forecast_days, source):
+    if source == 'may_2024':
+        from src.risk.historical_dashboard import get_historical_dashboard
+        return get_historical_dashboard()
+    return get_cached_or_compute(forecast_days=forecast_days)
 
-    _, ward_summary, citywide_burden, _ = get_cached_or_compute(
-        forecast_days=forecast_days
-    )
+
+def source_metadata(source):
+    if source == 'may_2024':
+        from src.risk.historical_dashboard import METADATA
+        return METADATA
+    return {'source': 'live', 'is_replay': False}
+
+
+@app.get("/ward-priority")
+def ward_priority(forecast_days: int = forecast_days_param(), source: Literal['live', 'may_2024'] = 'live'):
+
+    _, ward_summary, citywide_burden, _ = risk_data(forecast_days, source)
 
     return {
-        "forecast_days": forecast_days,
+        "forecast_days": 5 if source == "may_2024" else forecast_days,
         "citywide": citywide_summary(citywide_burden),
         "wards": _wards_payload(ward_summary),
+        "metadata": source_metadata(source),
     }
 
 
@@ -179,9 +197,9 @@ def ward_priority(forecast_days: int = forecast_days_param()):
 # ==================================================
 
 @app.get("/ward-forecast-timeline")
-def ward_forecast_timeline(forecast_days: int = forecast_days_param()):
+def ward_forecast_timeline(forecast_days: int = forecast_days_param(), source: Literal['live', 'may_2024'] = 'live'):
 
-    weather_df, _, _, _ = get_cached_or_compute(forecast_days=forecast_days)
+    weather_df, _, _, _ = risk_data(forecast_days, source)
 
     days = weather_df.copy()
     days["recommended_action_key"] = (
@@ -189,9 +207,10 @@ def ward_forecast_timeline(forecast_days: int = forecast_days_param()):
     )
 
     return {
-        "forecast_days": forecast_days,
+        "forecast_days": 5 if source == "may_2024" else forecast_days,
         "dates": sorted(days["date"].unique().tolist()),
         "days": _records(days, TIMELINE_FIELDS),
+        "metadata": source_metadata(source),
     }
 
 
@@ -200,7 +219,7 @@ def ward_forecast_timeline(forecast_days: int = forecast_days_param()):
 # ==================================================
 
 @app.get("/heat-event")
-def heat_event(forecast_days: int = forecast_days_param()):
+def heat_event(forecast_days: int = forecast_days_param(), source: Literal['live', 'may_2024'] = 'live'):
     """
     Whether an unusual heat event is forecast, and how severe.
 
@@ -209,9 +228,7 @@ def heat_event(forecast_days: int = forecast_days_param()):
     does not register as an event.
     """
 
-    _, ward_summary, citywide_burden, citywide_records = get_cached_or_compute(
-        forecast_days=forecast_days
-    )
+    _, ward_summary, citywide_burden, citywide_records = risk_data(forecast_days, source)
 
     event_days = [
         {
@@ -225,8 +242,9 @@ def heat_event(forecast_days: int = forecast_days_param()):
     ]
 
     return {
-        "forecast_days": forecast_days,
+        "forecast_days": 5 if source == "may_2024" else forecast_days,
         "heatwave_detected": len(event_days) > 0,
+        "metadata": source_metadata(source),
         "event_severity": citywide_burden["event_severity"],
         "days": event_days,
         "citywide": citywide_summary(citywide_burden),

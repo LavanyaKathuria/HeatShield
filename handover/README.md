@@ -1,5 +1,10 @@
 # Alerting — handover
 
+**Archive:** the active WhatsApp implementation now lives in `src/alerts/`.
+Follow [current setup](../docs/WHATSAPP_ALERTS.md), including explicit opt-in,
+production templates and the persistent dispatch ledger. The notes below describe
+the earlier handover and are preserved for historical context.
+
 The alerting layer was removed from the running system so it can be built
 separately. **The code and content here are complete and working** — they were
 running end to end before being lifted out. Nothing here needs rewriting from

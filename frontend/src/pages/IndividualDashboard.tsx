@@ -10,6 +10,10 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { RelationshipType } from '@/types/supabase'
 import type { WardHeatRisk } from '@/types/api'
+import { WhatsAppAlerts } from '@/components/panels/WhatsAppAlerts'
+import { useWardOptions } from '@/hooks/useWardOptions'
+
+import { useMapStore } from '@/store/useMapStore'
 
 const RELATIONSHIPS: RelationshipType[] = ['parent', 'grandparent', 'child', 'spouse', 'sibling', 'other']
 
@@ -18,6 +22,10 @@ function findWard(wards: WardHeatRisk[] | undefined, wardId: string | null): War
 }
 
 export function IndividualDashboard() {
+  const source = useMapStore((s) => s.source)
+  const dayIndex = useMapStore((s) => s.dayIndex)
+  const setDayIndex = useMapStore((s) => s.setDayIndex)
+  const wardOptions = useWardOptions()
   const { t } = useTranslation()
   const profile = useAuthStore((s) => s.profile)
 
@@ -30,7 +38,7 @@ export function IndividualDashboard() {
   // into 0, which then gets stuck showing "0". Only converted to a
   // number right before the insert.
   const [newDependent, setNewDependent] = useState({
-    full_name: '', relationship: 'grandparent' as RelationshipType, age: '65', is_outdoor_worker: false,
+    full_name: '', relationship: 'grandparent' as RelationshipType, age: '65', is_outdoor_worker: false, ward_id: '',
   })
 
   const dependentsQuery = useQuery({
@@ -52,12 +60,14 @@ export function IndividualDashboard() {
         relationship: newDependent.relationship,
         age: Number(newDependent.age),
         is_outdoor_worker: newDependent.is_outdoor_worker,
+        ward_id: newDependent.ward_id || null,
       })
       if (error) throw error
     },
     onSuccess: () => {
-      setNewDependent({ full_name: '', relationship: 'grandparent', age: '65', is_outdoor_worker: false })
+      setNewDependent({ full_name: '', relationship: 'grandparent', age: '65', is_outdoor_worker: false, ward_id: '' })
       queryClient.invalidateQueries({ queryKey: ['dependents'] })
+      queryClient.invalidateQueries({ queryKey: ['personal-alerts'] })
     },
   })
 
@@ -66,18 +76,21 @@ export function IndividualDashboard() {
       const { error } = await supabase.from('dependents').delete().eq('id', dependentId)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dependents'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dependents'] })
+      queryClient.invalidateQueries({ queryKey: ['personal-alerts'] })
+    },
   })
 
   const myWard = findWard(priorityQuery.data?.wards, profile?.ward_id ?? null)
-  const tier = myWard?.alert_level ?? 'none'
 
 
   const todayWardDay = useMemo(() => {
     if (!timelineQuery.data || !profile?.ward_id) return null
-    const firstDate = timelineQuery.data.dates[0]
+    const firstDate = timelineQuery.data.dates[dayIndex]
     return timelineQuery.data.days.find((d) => d.ward_id === profile.ward_id && d.date === firstDate) ?? null
-  }, [timelineQuery.data, profile])
+  }, [timelineQuery.data, profile, dayIndex])
+  const tier = todayWardDay?.alert_level ?? myWard?.alert_level ?? 'none'
 
   return (
     <DashboardShell>
@@ -106,7 +119,7 @@ export function IndividualDashboard() {
                     {(todayWardDay?.tmax ?? myWard.peak_utci_c).toFixed(0)}Â°
                   </span>
                   <span className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('thermometer.feelsLike')} {myWard.peak_utci_c.toFixed(0)}Â°
+                    {t('thermometer.feelsLike')} {(todayWardDay?.utci_c ?? myWard.peak_utci_c).toFixed(0)}Â°
                   </span>
                   {todayWardDay && (
                     <span className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
@@ -129,11 +142,12 @@ export function IndividualDashboard() {
       </div>
 
       <div className="mx-auto max-w-[720px] space-y-4 px-6 py-6">
-        <div className="surface-card p-5">
-          <h2 className="text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>{t('alerts.title')}</h2>
-          <p className="mt-2 text-[13px]" style={{ color: 'var(--text-tertiary)' }}>{t('alerts.citizenEmpty')}</p>
-          <p className="mt-1 text-[12px]" style={{ color: 'var(--text-tertiary)' }}>{t('alerts.citizenEmptyExplainer')}</p>
-        </div>
+        {source === 'may_2024' && <section className="surface-card space-y-3 p-5">
+          <div className="flex flex-wrap gap-2">{timelineQuery.data?.dates.map((date, index) => <button key={date} className="btn btn-secondary" aria-pressed={dayIndex === index} onClick={() => setDayIndex(index)} style={{ fontWeight: dayIndex === index ? 700 : 400 }}>{date}</button>)}</div>
+          <h2 className="font-semibold">{t('replay.mortality')}</h2>
+          {priorityQuery.data && <p>{t('replay.estimate', { count: priorityQuery.data.citywide.estimated_total_excess_deaths, low: priorityQuery.data.citywide.estimated_total_excess_deaths_low, high: priorityQuery.data.citywide.estimated_total_excess_deaths_high })}</p>}
+        </section>}
+        <WhatsAppAlerts key={profile?.id} />
 
         <div className="surface-card p-5">
           <div className="flex items-center gap-2">
@@ -204,6 +218,8 @@ export function IndividualDashboard() {
                 </select>
                 <input
                   type="number"
+                  min={0}
+                  max={120}
                   value={newDependent.age}
                   onChange={(e) => setNewDependent({ ...newDependent, age: e.target.value })}
                   placeholder={t('auth.age')}
@@ -217,14 +233,21 @@ export function IndividualDashboard() {
                   />
                   {t('auth.isOutdoorWorker')}
                 </label>
+                <label className="col-span-2 text-[12px]">{t('auth.ward')}
+                  <select className="input" value={newDependent.ward_id} onChange={(e) => setNewDependent({ ...newDependent, ward_id: e.target.value })}>
+                    <option value="">{t('whatsapp.sameWard')}</option>
+                    {wardOptions.map((w) => <option key={w.ward_id} value={w.ward_id}>{w.ward_name}</option>)}
+                  </select>
+                </label>
               </div>
               <button
                 onClick={() => addDependentMutation.mutate()}
-                disabled={!newDependent.full_name || !newDependent.age || Number(newDependent.age) <= 0 || addDependentMutation.isPending}
+                disabled={!newDependent.full_name.trim() || !newDependent.age || !Number.isInteger(Number(newDependent.age)) || Number(newDependent.age) < 0 || Number(newDependent.age) > 120 || addDependentMutation.isPending}
                 className="btn btn-primary mt-3 w-full"
               >
                 {t('family.add')}
               </button>
+              {(addDependentMutation.isError || deleteDependentMutation.isError || dependentsQuery.isError) && <p role="alert" className="mt-2 text-[13px]">{t('whatsapp.error')}</p>}
             </>
           )}
         </div>

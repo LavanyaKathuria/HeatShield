@@ -1,0 +1,241 @@
+{
+  "advisory": {
+    "elderly": {
+      "why": {
+        "thirst_unreliable": "After about 65, the body's thirst signal weakens. You can be badly dehydrated before you feel thirsty — so drink to a clock, not to thirst.",
+        "medication": "Blood pressure tablets, water tablets (diuretics) and some heart medicines make it harder for the body to cope with heat. Do not stop them — but tell your doctor a heatwave is coming.",
+        "confusion_is_emergency": "Confusion, slurred speech or hot dry skin with no sweating is heat stroke. It is a medical emergency, not exhaustion. Cool the person and call 108 at once."
+      },
+      "watch": {
+        "headline": "Heat is building in your area over the next few days.",
+        "action": {
+          "drink_schedule": "Drink one glass of water every hour while you are awake, even if you are not thirsty.",
+          "stay_in_midday": "Stay indoors between 12 noon and 4 pm. Do outdoor work early morning or after sunset.",
+          "daily_checkin": "Arrange for someone to check on you once a day."
+        }
+      },
+      "warning": {
+        "headline": "Dangerous heat expected. Older people are most at risk.",
+        "action": {
+          "drink_schedule": "One glass of water every 30 to 45 minutes while awake. Add a pinch of salt and sugar, or use ORS, if you are sweating a lot.",
+          "coolest_room": "Spend the afternoon in the coolest room of the house. Close curtains on the sunny side, open windows once it cools after sunset.",
+          "damp_cloth": "Keep a damp cloth on the back of your neck and wrists. A fan alone does not cool you once the air is above body temperature — the damp cloth is what makes it work.",
+          "medication_check": "If you take blood pressure, heart or water tablets, tell your doctor or nearest health centre that a heatwave is forecast.",
+          "twice_daily_checkin": "Ask a family member or neighbour to check on you morning and evening."
+        }
+      },
+      "danger": {
+        "headline": "Extreme heat. Do not go outside. Stay with someone if you can.",
+        "action": {
+          "do_not_go_out": "Do not go outside at all during daylight unless it is a medical emergency.",
+          "cool_shower": "Take a cool shower or sponge bath two or three times during the day.",
+          "someone_present": "Do not stay alone. Ask a relative or neighbour to stay with you, or go to a relative's house early in the morning.",
+          "warning_signs": "Warning signs: headache, dizziness, feeling sick, cramps, or passing very little urine. Stop, cool down and drink immediately.",
+          "call_108": "If there is confusion, fainting, or the skin is hot and dry with no sweat — call 108 immediately and cool the person with water while you wait."
+        }
+      }
+    },
+    "worker": {
+      "why": {
+        "urine_colour": "Dark yellow urine means you are already dehydrated. Aim for pale straw colour — it is the easiest check you can do on site.",
+        "acclimatisation": "Most serious heat illness happens in the first few days on a hot site. A worker who is new, returning after leave, or unwell needs a lighter load for the first week.",
+        "cooling_first": "If a workmate collapses in heat, cooling comes before transport. Move them to shade, soak them with water and fan them while someone calls 108. Minutes of cooling matter more than minutes of driving."
+      },
+      "watch": {
+        "headline": "Hot working conditions expected. Plan your water and rest.",
+        "action": {
+          "water_every_20": "Drink about 250 ml of water every 20 minutes — roughly one glass, three times an hour. Do not wait for a break.",
+          "shade_breaks": "Take a rest in shade for 10 minutes every hour.",
+          "shift_heavy_work": "Move the heaviest work to before 11 am or after 5 pm."
+        }
+      },
+      "warning": {
+        "headline": "Dangerous working heat. Rest breaks are not optional today.",
+        "action": {
+          "rest_half_hour": "Work no more than 30 minutes in every hour in direct sun. Rest the other 30 minutes in shade.",
+          "avoid_peak_hours": "Stop all heavy outdoor work between 12 noon and 4 pm.",
+          "buddy_system": "Work in pairs. Each person checks the other every half hour — heat illness starts with confusion, and you will notice it in someone else before you notice it in yourself.",
+          "ors": "Drink ORS or salted lemon water, not only plain water. Heavy sweating loses salt as well as water.",
+          "new_workers": "New workers, or anyone returning after time away, should do lighter work for the first week."
+        }
+      },
+      "danger": {
+        "headline": "Extreme heat. Stop non-essential outdoor work.",
+        "action": {
+          "stop_heavy_work": "Stop all heavy outdoor work. Only essential and emergency work should continue, with continuous shade and water.",
+          "reschedule": "Reschedule work to early morning, night, or a cooler day.",
+          "warning_signs": "Stop immediately if anyone has cramps, dizziness, nausea, headache or stops sweating.",
+          "cool_first_transport_second": "If someone collapses: move to shade, soak with water, fan continuously, call 108. Cool first, transport second."
+        }
+      }
+    },
+    "child": {
+      "why": {
+        "vehicle": "The inside of a parked vehicle can rise 20°C above the outside air in 10 minutes, even with a window open. Children have died in vehicles in under an hour.",
+        "infants_cannot_tell_you": "A baby cannot tell you it is overheating, and sweats less efficiently than an adult. Fewer wet nappies and unusual sleepiness are the earliest signs.",
+        "rapid_deterioration": "Children heat up faster than adults because they are smaller and produce more heat for their size. A child can go from playing to seriously ill in under an hour."
+      },
+      "watch": {
+        "headline": "Hot days ahead. Keep children out of the midday sun.",
+        "action": {
+          "no_midday_play": "No outdoor play between 12 noon and 4 pm. Move games to early morning or evening.",
+          "water_bottle": "Send a full water bottle to school and remind them to finish it.",
+          "never_leave_in_vehicle": "Never leave a child alone in a parked vehicle, not even for a minute."
+        }
+      },
+      "warning": {
+        "headline": "Dangerous heat for children. Keep activity indoors.",
+        "action": {
+          "indoor_only_midday": "Keep children indoors from 11 am to 5 pm. Cancel outdoor sport and games.",
+          "extra_feeds": "Breastfed babies need more frequent feeds — breast milk is enough, do not give water to babies under 6 months.",
+          "watch_nappies": "Check nappies. Fewer than usual wet nappies, or dark urine, means the child needs fluids now.",
+          "light_clothing": "Dress children in loose, light cotton clothing. Remove extra layers indoors."
+        }
+      },
+      "danger": {
+        "headline": "Extreme heat. Keep children indoors and watch them closely.",
+        "action": {
+          "keep_indoors": "Keep children indoors all day in the coolest room available.",
+          "cool_sponge": "Sponge the child with cool (not cold) water two or three times during the day.",
+          "warning_signs": "Warning signs: unusual sleepiness, refusing to drink, no wet nappy for 6 hours, vomiting, or hot dry skin.",
+          "seek_care": "Take the child to the nearest health centre immediately if any warning sign appears. Do not wait to see if it passes."
+        }
+      }
+    },
+    "general": {
+      "why": {
+        "heatstroke_is_emergency": "Heat stroke is not the same as feeling tired in the heat. Confusion, fainting or hot dry skin with no sweating needs emergency care within minutes."
+      },
+      "watch": {
+        "headline": "A heatwave is forecast for your area.",
+        "action": {
+          "plan_around_midday": "Plan errands, travel and outdoor work for before 11 am or after 5 pm.",
+          "carry_water": "Carry water with you whenever you go out.",
+          "check_on_neighbours": "Check on elderly neighbours and anyone living alone."
+        }
+      },
+      "warning": {
+        "headline": "Heatwave conditions. Avoid the afternoon sun.",
+        "action": {
+          "avoid_midday": "Avoid going out between 12 noon and 4 pm.",
+          "hydrate": "Drink water regularly through the day, more than you feel you need. Avoid alcohol and very sweet drinks.",
+          "check_on_vulnerable": "Check on elderly relatives and neighbours twice a day.",
+          "cooling_centres": "Public cooling points and shaded rest areas are open. Use them if your home does not cool down."
+        }
+      },
+      "danger": {
+        "headline": "Extreme heatwave. Stay indoors and check on others.",
+        "action": {
+          "stay_indoors": "Stay indoors during daylight hours. Postpone all non-essential travel.",
+          "no_outdoor_work": "Outdoor work should stop or move to night hours.",
+          "check_twice_daily": "Check on every elderly or unwell person you know, morning and evening.",
+          "emergency_signs": "Call 108 for confusion, fainting, or hot dry skin with no sweating. Cool the person with water while waiting."
+        }
+      }
+    }
+  },
+
+  "voice": {
+    "elderly": {
+      "watch": "Namaste. This is a heat warning for your area. Over the next few days it will be very hot. Please drink one glass of water every hour, even if you do not feel thirsty. After sixty five, the body stops feeling thirst properly. Stay inside between twelve noon and four in the afternoon. Please ask someone to check on you every day. Again — drink water every hour, even without thirst.",
+      "warning": "Namaste. This is an important heat warning. Dangerous heat is expected in your area, and it is most dangerous for older people. Drink one glass of water every half hour while you are awake. Stay in the coolest room of your house in the afternoon. Keep a wet cloth on your neck. If you take blood pressure or heart tablets, please tell your doctor. Ask family to check on you morning and evening. Again — one glass of water every half hour.",
+      "danger": "Namaste. This is an emergency heat warning. Extreme heat is here. Please do not go outside at all today. Take a cool bath two or three times. Do not stay alone — ask a family member or neighbour to stay with you. If you feel dizzy, sick, or stop passing urine, drink water and rest immediately. If anyone becomes confused or faints, call one zero eight at once and pour water on them while waiting. Again — do not go outside, and do not stay alone today."
+    },
+    "worker": {
+      "watch": "Namaste. Hot working conditions are expected in the coming days. Please drink one glass of water every twenty minutes while working. Do not wait for the break. Rest in shade for ten minutes every hour. Do your heaviest work before eleven in the morning or after five in the evening. Again — one glass of water every twenty minutes.",
+      "warning": "Namaste. This is an important warning for outdoor workers. Dangerous heat is expected. Work no more than thirty minutes in every hour in direct sun, and rest the other thirty minutes in shade. Stop heavy work completely between twelve noon and four in the afternoon. Work in pairs and check on each other every half hour. Drink O R S or salted lemon water, not only plain water. Again — thirty minutes work, thirty minutes rest in shade.",
+      "danger": "Namaste. This is an emergency heat warning for outdoor workers. Extreme heat is here. Please stop all heavy outdoor work today. Move work to night or to a cooler day. If a workmate has cramps, dizziness, or stops sweating, stop work at once. Move them to shade, pour water on them, fan them, and call one zero eight. Cool them first, before moving them. Again — stop heavy outdoor work today."
+    },
+    "child": {
+      "watch": "Namaste. This is a heat warning for your area. Hot days are expected. Please keep children out of the sun between twelve noon and four in the afternoon. Send a full water bottle to school. Never leave a child alone in a parked vehicle, even for one minute. Again — no outdoor play in the afternoon.",
+      "warning": "Namaste. This is an important heat warning for families with children. Dangerous heat is expected. Please keep children indoors from eleven in the morning to five in the evening. Cancel outdoor games and sport. If you have a baby, feed more often. Check the nappy — fewer wet nappies or dark urine means the child needs fluids now. Again — keep children indoors in the afternoon and watch for fewer wet nappies.",
+      "danger": "Namaste. This is an emergency heat warning for families with children. Extreme heat is here. Keep children indoors all day in the coolest room. Sponge them with cool water two or three times. Watch for unusual sleepiness, refusing to drink, vomiting, or no wet nappy for six hours. If you see any of these, take the child to the health centre immediately. Do not wait. Again — keep children inside, and go to the health centre at the first warning sign."
+    },
+    "general": {
+      "watch": "Namaste. A heatwave is forecast for your area in the next few days. Please plan your travel and outdoor work for before eleven in the morning or after five in the evening. Carry water when you go out. Please check on elderly neighbours and anyone living alone. Again — avoid the afternoon sun.",
+      "warning": "Namaste. Heatwave conditions are expected in your area. Please avoid going outside between twelve noon and four in the afternoon. Drink water regularly through the day, more than you think you need. Check on elderly relatives and neighbours twice a day. Public cooling points are open if your home does not cool down. Again — avoid the afternoon sun and drink water often.",
+      "danger": "Namaste. This is an emergency heatwave warning for your area. Extreme heat is here. Please stay indoors during the day and postpone all travel that is not necessary. Outdoor work should stop. Please check on every elderly or unwell person you know, morning and evening. If anyone becomes confused, faints, or their skin is hot and dry, call one zero eight immediately. Again — stay indoors and check on others today."
+    }
+  },
+
+  "institution": {
+    "hospital": {
+      "watch": {
+        "brief_triage": "Brief triage staff to ask about heat exposure for anyone presenting with dizziness, cramps or collapse.",
+        "check_ors_iv_stock": "Verify ORS and IV fluid stock covers a doubling of normal daily use.",
+        "identify_cooling_area": "Identify and label a cooling area near triage — shaded, fanned, with cold water and ice packs."
+      },
+      "warning": {
+        "surge_roster": "Prepare a surge roster for the forecast days. Heat admissions peak in the late afternoon and evening.",
+        "cooling_area_ready": "Make the cooling area operational: fans, ice packs, cold IV fluids, rectal thermometer.",
+        "ice_packs_fans": "Move ice packs and fans to the emergency department now, not when the first case arrives.",
+        "brief_heatstroke_protocol": "Brief all clinical staff on heat stroke recognition and rapid cooling — cool first, investigate second.",
+        "flag_dialysis_cardiac": "Flag dialysis, cardiac and elderly outpatients. Call ahead to confirm they can reach appointments safely."
+      },
+      "danger": {
+        "activate_surge": "Activate the surge roster today.",
+        "triage_fast_track": "Fast-track suspected heat stroke to immediate cooling. Do not queue these patients.",
+        "extra_ambulance": "Confirm additional ambulance availability with the district control room.",
+        "daily_reporting": "Report heat-related presentations and deaths daily to the municipal health office."
+      }
+    },
+    "school": {
+      "watch": {
+        "move_assembly_early": "Move assembly to the first period and hold it indoors or in shade.",
+        "water_points": "Check every water point works and place additional water near play areas.",
+        "inform_parents": "Send a note to parents: full water bottle daily, light cotton uniform, cap for travel."
+      },
+      "warning": {
+        "no_outdoor_sport": "Cancel outdoor sport, games periods and drills.",
+        "shift_timings": "Consider shifting school hours earlier for the forecast days, and inform parents at least a day ahead.",
+        "shaded_transport_wait": "Ensure pickup and bus waiting areas are shaded. Do not let children wait in open sun or in parked vehicles.",
+        "identify_at_risk_students": "Identify students with asthma, heart conditions, obesity or recent illness and inform their teachers."
+      },
+      "danger": {
+        "consider_closure": "Consider closure or a half day, and inform parents the previous evening.",
+        "all_activity_indoors": "All activity indoors. No exceptions for sport, practice or events.",
+        "first_aid_ready": "Ensure first aid staff are briefed on heat exhaustion and heat stroke, with cool water and fans available.",
+        "notify_parents_pickup": "Notify parents of any change to pickup time by the previous evening."
+      }
+    },
+    "phc": {
+      "watch": {
+        "prepare_outreach_list": "Prepare the outreach list: residents over 65 living alone, pregnant women, and people with heart, kidney or respiratory conditions.",
+        "ors_stock": "Confirm ORS stock and distribution points for the coming week."
+      },
+      "warning": {
+        "call_elderly_list": "Call or visit everyone on the elderly outreach list before the forecast peak day.",
+        "brief_asha_workers": "Brief ASHA and community health workers on the forecast, the warning signs, and when to refer.",
+        "ors_distribution": "Begin ORS distribution at community points, construction sites and markets.",
+        "pregnant_and_chronic": "Contact pregnant women and chronic disease patients with hydration advice and appointment changes."
+      },
+      "danger": {
+        "door_to_door_elderly": "Door-to-door checks on the elderly outreach list, morning and evening.",
+        "mobile_ors_points": "Run mobile ORS and cooling points at worksites, markets and transport hubs.",
+        "refer_early": "Refer early. Do not observe suspected heat stroke at the centre — cool and transfer."
+      }
+    },
+    "city": {
+      "watch": {
+        "confirm_cooling_centres": "Confirm cooling centre locations, staffing and opening hours for the forecast days.",
+        "water_tanker_readiness": "Confirm water tanker availability and identify wards with known supply gaps.",
+        "brief_ward_officers": "Brief ward officers on the forecast and the ward-level risk ranking."
+      },
+      "warning": {
+        "open_cooling_centres": "Open cooling centres in the highest-risk wards from 11 am to 6 pm.",
+        "extend_park_hours": "Extend park and garden opening hours into the early morning and evening.",
+        "shift_municipal_outdoor_work": "Shift municipal outdoor work — sanitation, construction, road works — out of the 12 noon to 4 pm window.",
+        "water_tankers_to_wards": "Deploy water tankers to the highest-risk wards and to major worksites.",
+        "public_announcement": "Issue a public announcement in all local languages across radio, local media and loudspeaker.",
+        "power_grid_readiness": "Alert the electricity utility to expected peak load and confirm priority restoration for hospitals and cooling centres."
+      },
+      "danger": {
+        "activate_heat_action_plan": "Activate the city Heat Action Plan and convene the nodal officers.",
+        "all_cooling_centres_24h": "Open all cooling centres with extended or overnight hours, with drinking water and ORS.",
+        "halt_outdoor_municipal_work": "Halt all non-emergency outdoor municipal work for the duration.",
+        "pre_position_ambulances": "Pre-position ambulances in the highest-risk wards and confirm crew briefing on rapid cooling.",
+        "coordinate_with_hospitals": "Open a daily reporting line with hospitals and health centres on heat presentations and deaths."
+      }
+    }
+  }
+}

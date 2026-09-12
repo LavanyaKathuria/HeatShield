@@ -48,8 +48,6 @@ def get_ward_weather_mortality_risk(forecast_days=3):
     )
 
     climatology = Climatology()
-    engine = HeatBurdenEngine(CITY_POPULATION)
-
     # ------------------------------------------------------------------
     # 2. EVENT DETECTION  (city scale - see live_ehf.py for why)
     # ------------------------------------------------------------------
@@ -75,6 +73,13 @@ def get_ward_weather_mortality_risk(forecast_days=3):
         )
         ehf_by_date = {date: None for date in city_utci_by_date}
         event_detection_failed = True
+
+    return evaluate_weather(weather, climatology, ehf_by_date, event_detection_failed)
+
+
+def evaluate_weather(weather, climatology, ehf_by_date, event_detection_failed=False):
+    """Shared risk computation for live weather and labelled historical replay."""
+    engine = HeatBurdenEngine(CITY_POPULATION)
 
     # ------------------------------------------------------------------
     # 3. PER WARD-DAY RISK

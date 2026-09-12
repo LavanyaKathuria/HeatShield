@@ -9,6 +9,8 @@ import { create } from 'zustand'
 export type MapMode = 'weather' | 'heat_risk'
 
 interface MapState {
+  source: 'live' | 'may_2024'
+  setSource: (source: 'live' | 'may_2024') => void
   mapMode: MapMode
   selectedWardId: string | null
   // Index into the /ward-forecast-timeline `dates` array - drives the
@@ -21,6 +23,8 @@ interface MapState {
 }
 
 export const useMapStore = create<MapState>((set) => ({
+  source: 'live',
+  setSource: (source) => set({ source, dayIndex: source === 'may_2024' ? 2 : 0 }),
   mapMode: 'heat_risk',
   selectedWardId: null,
   dayIndex: 0,

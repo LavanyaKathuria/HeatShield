@@ -2,6 +2,9 @@
 # Secrets - never commit these
 # ----------------------------------------------------------------------
 .env
+.env.*
+!.env.example
+!.env.*.example
 .env.local
 .env.*.local
 frontend/.env
@@ -61,3 +64,25 @@ Thumbs.db
 # Runtime leftovers
 # ----------------------------------------------------------------------
 *.pid
+.tmp-tools/
+data/alerts.sqlite*
+# Delivery databases, logs and exports can contain recipient details.
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+*.db-wal
+*.db-shm
+*.log
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials*.json
+service-account*.json
+playwright-report/
+test-results/

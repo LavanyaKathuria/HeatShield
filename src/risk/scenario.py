@@ -9,7 +9,7 @@ weather until the thresholds trip, which proves nothing: a system can be
 made to alert on numbers chosen to make it alert.
 
 So this replays days that actually happened. The May 2024 event is the
-most intense in the 30-year record by Excess Heat Factor; May 2010 is the
+event containing the highest UTCI in the stored 1995–2024 record; May 2010 is the
 one with independently measured mortality. Both run through exactly the
 same climatology, burden engine and triggers as a live forecast - the
 only substitution is where the weather comes from.
@@ -28,7 +28,7 @@ from src.risk import levels
 
 # Real events in the historical record, by peak date.
 SCENARIOS = {
-    # Most intense event in 30 years by EHF.
+    # Contains the highest UTCI in the stored 1995–2024 record.
     "may_2024": ("2024-05-21", "2024-05-25"),
     # The catastrophic event, with independently measured excess deaths.
     "may_2010": ("2010-05-19", "2010-05-23"),

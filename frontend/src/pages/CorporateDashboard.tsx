@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { WhatsAppAlerts } from '@/components/panels/WhatsAppAlerts'
 import { useTranslation } from 'react-i18next'
 import { DashboardShell } from '@/components/layout/DashboardShell'
 import { WardChoroplethMap } from '@/components/map/WardChoroplethMap'
@@ -19,6 +20,7 @@ function scopeWards(wards: WardHeatRisk[], role: string, ownWardId: string | nul
 }
 
 export function CorporateDashboard() {
+  const [alertsOpen, setAlertsOpen] = useState(false)
   const { t } = useTranslation()
   const priorityQuery = useWardPriority()
   const timelineQuery = useWardForecastTimeline()
@@ -59,6 +61,13 @@ export function CorporateDashboard() {
 
   return (
     <DashboardShell fullBleed navCenter={<MapModeControl />}>
+      <div className="absolute left-4 top-16 z-30">
+        <button className="btn btn-secondary" onClick={() => setAlertsOpen(!alertsOpen)}>{t('whatsapp.title')}</button>
+      </div>
+      {alertsOpen && <div className="absolute inset-x-4 top-28 bottom-4 z-40 overflow-y-auto md:left-4 md:right-auto md:w-[460px]" style={{ background: 'var(--surface-card)' }}>
+        <button className="btn btn-secondary m-3" onClick={() => setAlertsOpen(false)}>{t('common.close')}</button>
+        <WhatsAppAlerts key={corporateAccount?.id} />
+      </div>}
       <div className="absolute inset-0">
         <WardChoroplethMap wardSummaries={scopedWards} wardsByDay={wardsByDay} />
       </div>
@@ -84,6 +93,7 @@ export function CorporateDashboard() {
           <PlaceInfoPanel
             wards={scopedWards}
             wardTimeline={wardTimeline}
+            cityWardDays={wardsByDay ? Array.from(wardsByDay.values()) : []}
             citywide={priorityQuery.data?.citywide}
             loading={priorityQuery.isLoading}
           />

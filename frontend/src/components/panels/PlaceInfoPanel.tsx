@@ -15,6 +15,7 @@ import type {
 interface PlaceInfoPanelProps {
   wards: WardHeatRisk[]
   wardTimeline: WardDailyRecord | null
+  cityWardDays?: WardDailyRecord[]
   citywide: CitywideSummary | undefined
   loading?: boolean
 }
@@ -104,6 +105,7 @@ function CloseButton({ onClick }: { onClick: () => void }) {
 export function PlaceInfoPanel({
   wards,
   wardTimeline,
+  cityWardDays = [],
   citywide,
   loading,
 }: PlaceInfoPanelProps) {
@@ -154,6 +156,7 @@ export function PlaceInfoPanel({
           ) : (
             <HeatRiskCityOverview
               worst={worst}
+              wardDays={cityWardDays}
               citywide={citywide}
               onOpenMethodology={() => setMethodologyOpen(true)}
             />
@@ -241,7 +244,6 @@ function WeatherCityOverview({ worst }: { worst: WardHeatRisk | null }) {
 function HeatRiskWardCard({
   ward,
   wardDay,
-  citywideMortality,
   citywide,
   humidity,
   whatIfUtci,
@@ -339,14 +341,24 @@ function HeatRiskWardCard({
 
 function HeatRiskCityOverview({
   worst,
+  wardDays,
   citywide,
   onOpenMethodology,
 }: {
   worst: WardHeatRisk | null
+  wardDays: WardDailyRecord[]
   citywide: CitywideSummary
   onOpenMethodology: () => void
 }) {
   const { t, i18n } = useTranslation()
+  const dayIndex = useMapStore((s) => s.dayIndex)
+  const source = useMapStore((s) => s.source)
+  const day = citywide.daily[dayIndex]
+  const matchingDays = day ? wardDays.filter((record) => record.date === day.date) : []
+  const maxValue = (key: 'tmax' | 'wbgt_shade_c') => {
+    const values = matchingDays.map((record) => record[key]).filter(Number.isFinite)
+    return values.length ? `${Math.max(...values).toFixed(1)}°C` : '—'
+  }
   const cityTier = citywide.peak_alert_level
   const asOf = citywide.forecast_generated_at
     ? new Date(citywide.forecast_generated_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })
@@ -364,9 +376,20 @@ function HeatRiskCityOverview({
       <p className="mt-1.5 text-[13px]" style={{ color: 'var(--text-secondary)' }}>{t(`tierDescriptions.${cityTier}`)}</p>
       {asOf && <p className="mt-1 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{t('heatStatus.asOf', { time: asOf })}</p>}
 
+      {day && <div className="surface-sunken mt-3 space-y-2 p-3">
+        <p className="text-[12px] font-semibold">{t('heatNumbers.date', { date: day.date })}</p>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+          <ValueTile icon={<IconThermometer />} label={t('heatNumbers.air')} value={maxValue('tmax')} />
+          <ValueTile label={t('heatNumbers.utci')} value={Number.isFinite(day.utci_c) ? `${day.utci_c.toFixed(1)}°C` : '—'} />
+          <ValueTile label={t('heatNumbers.wbgt')} value={maxValue('wbgt_shade_c')} />
+          <ValueTile label={t('heatNumbers.ehf')} value={day.ehf !== null && Number.isFinite(day.ehf) ? day.ehf.toFixed(1) : '—'} />
+        </div>
+        <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{t('heatNumbers.scope')}</p>
+      </div>}
+
       {citywide.heatwave_detected && citywide.heatwave_duration_days > 0 && (
         <p className="surface-sunken mt-3 p-2.5 text-[12px]" style={{ color: 'var(--text-primary)' }}>
-          {t('heatStatus.sustainedActive', { count: citywide.heatwave_duration_days })}
+          {t(source === 'may_2024' ? 'heatNumbers.historicalDuration' : 'heatStatus.sustainedActive', { count: citywide.heatwave_duration_days })}
         </p>
       )}
 

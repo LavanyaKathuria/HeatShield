@@ -2,7 +2,7 @@
 
 ## Setup
 
-You need **Python 3.11+** and **Node 18+**.
+You need **Python 3.11+** and **Node 22.12+** (the frontend uses Vite 8).
 
 ### 1. Backend
 
@@ -32,13 +32,13 @@ running** or the map will be empty.
 ```bash
 python scripts/check_api.py        # backend, with the server running
 python scripts/current_risk.py     # today's risk for all five categories
-python -m pytest tests -q          # 20 tests
+python -m pytest tests -q
 ```
 
 ### Environment keys
 
-Only the **frontend** needs keys. The backend needs none — the weather API is
-free and keyless.
+The weather API is free and keyless. WhatsApp alerts also need backend Supabase
+and Twilio configuration; see [WhatsApp setup](docs/WHATSAPP_ALERTS.md).
 
 Put these in `frontend/.env` (copy from `frontend/.env.example`):
 
@@ -48,8 +48,9 @@ Put these in `frontend/.env` (copy from `frontend/.env.example`):
 | `VITE_SUPABASE_ANON_KEY` | Supabase **anon** key — safe to be public; it ships in the browser bundle and is protected by row-level security |
 | `VITE_API_BASE_URL` | *optional*, leave unset in dev (the proxy handles it) |
 
-> **Never** put the Supabase **service-role** key anywhere in this repo. It
-> bypasses row-level security entirely. If it has ever been shared, rotate it.
+> Keep the Supabase **service-role** key in backend secret storage or the
+> gitignored root `.env` only. Never put it in frontend variables or tracked files.
+> It bypasses row-level security entirely.
 >
 > `.env` files are gitignored. Share keys through a password manager, not email
 > or chat — email keeps a copy on every server and device it touches, forever.
@@ -230,138 +231,33 @@ src/
 frontend/src/               React + MapLibre dashboard, EN / HI / GU
 scripts/                    build climatology, refresh cache, smoke tests
 tests/                      20 tests
-handover/                   the alerting layer (see below)
+handover/                   original alerting archive
+src/alerts/                 active WhatsApp targeting, rendering and delivery
 research/SOURCES.md         every number, and where it came from
 ```
 
 ---
 
-## The alerting system — for whoever builds it next
+## WhatsApp alerts
 
-**Status: designed, written, tested, and deliberately lifted out.** Everything
-in `handover/` was running end to end before being removed. It does not need
-rewriting. It needs reconnecting.
+English, Hindi and Gujarati WhatsApp alerts are connected to the existing risk
+engine. Both dashboards use saved account contact and language preferences and
+provide personalized forecast advisories and message history. A scheduled worker handles
+delivery, event deduplication and escalation using a persistent ledger.
 
-### The goal, in one sentence
+See [setup, previews, templates and scheduling](docs/WHATSAPP_ALERTS.md).
+The **Historical heatwave** navigation control replays 21–25 May 2024, opening
+on the archive's highest-UTCI day, 23 May. It updates dashboard data and sends
+eligible sandbox replay alerts for the signed-in account. Citywide mortality is
+a model estimate; archived city weather is applied uniformly across current wards.
+Historical previews run without credentials:
 
-**Get the right advice to the right person, in their own language, early enough
-to act on — including to people who cannot read.**
+```bash
+python scripts/dispatch_alerts.py --scenario may_2024 --language gu
+```
 
-That last clause is the whole point. A dashboard reaches officials. SMS reaches
-literate people with phones. Neither reaches the elderly woman living alone or
-the construction worker who left school at eleven — and those are precisely the
-people who die. If the system only ever produces a beautiful map, it has
-failed at its actual job.
-
-### When do we send an alert?
-
-Three conditions. **All three** must be true:
-
-**1. It's a heat event.** The Excess Heat Factor is positive — today is
-genuinely unusual for this place and this date. Not merely hot. In this climate
-"hot" is most of the year, and a warning that fires most of the year is not a
-warning; it is noise that teaches people to ignore the next one.
-
-**2. A group's threshold is crossed.** Each group is judged on the measure that
-governs its own response — mortality is the wrong endpoint for most of them:
-
-| group | measured on | why that measure |
-|---|---|---|
-| Elderly | excess deaths per 100,000 | the endpoint really is death, and it arrives for them first |
-| Outdoor workers | WBGT | it's the occupational standard that sets work/rest cycles |
-| Children | thermal stress index | the endpoint is safe outdoor activity, not mortality |
-| General public | event severity | awareness during an unusual event |
-
-**3. The recipient is in that group** — themselves, or through a family member
-they've added.
-
-So if only the elderly threshold is crossed, **only households containing an
-older person** get the elderly advisory. A construction worker with no elderly
-relatives gets the general notice, or silence. Everyone getting everything is
-how a warning system becomes wallpaper.
-
-This decision is **already built and running.** `src/risk/levels.py` computes a
-level per group for every ward and every forecast day; `weather_pipeline` writes
-it to `group_levels` on each row; the API returns it. What was removed is only
-the part that turns that decision into a message and sends it.
-
-Also already exposed: `work_rest_key` on every ward. That's standing
-occupational guidance ("15 min work / 45 min rest"), produced **every day**,
-event or not. Guidance is a fact about the conditions; an alert is a claim that
-today is different. Don't conflate them — in this climate the work/rest advice
-is warranted for much of the year, and if it went out as an *alert* it would
-destroy the credibility of the real ones.
-
-### Deduplication
-
-One message per **ward + group + level** per event. A 5-day forecast must not
-produce five near-identical messages. Re-send only when the event **escalates** —
-that is the one repeat worth making.
-
-### Channels, and why each exists
-
-| channel | for whom | status |
-|---|---|---|
-| **Voice call** | anyone who may not read a written alert — **the whole point** | designed, not wired |
-| WhatsApp | smartphone users | **working** (Twilio Sandbox) |
-| SMS | feature-phone users | designed, needs DLT registration |
-| Dashboard | officials, hospitals, schools | working |
-
-### What's in `handover/`
-
-| file | |
-|---|---|
-| `advisories.py` | which message applies to which audience at which level, plus lead-timed institutional checklists |
-| `engine.py` | targeting — who receives what, and on which channel |
-| `render.py` | keys + language → exact text per channel |
-| `dispatch.py` | WhatsApp delivery via Twilio Sandbox, dry-run by default |
-| `advisory-content/{en,hi,gu}.json` | **~160 keys × 3 languages** — the genuinely expensive part |
-
-`handover/README.md` has the reconnection steps. Only two imports need fixing:
-`src.alerts.triggers` → `src.risk.levels`, same function names.
-
-### Things worth not relearning the hard way
-
-- **Advisories must be specific.** "Stay hydrated" is not advice. "One glass
-  every 30 minutes, even if you are not thirsty" is — and it carries the reason
-  (after 65 the thirst signal weakens), because the reason is what makes people
-  comply.
-- **Devanagari and Gujarati cost 70 characters per SMS segment, not 160.**
-  A message sized for Latin script silently triples in cost or gets truncated.
-- **Voice scripts are written separately, never the SMS read aloud.** A
-  listener cannot re-read a sentence. The scripts lead with the action, avoid
-  lists, and repeat the key instruction at the end. "108" is spelled out in
-  words so it is unambiguous over a phone line.
-- **Pre-record the voice clips with a native speaker.** 12 scripts × 3
-  languages = 36 files, recorded once. Gujarati text-to-speech isn't supported
-  by the voices behind Twilio at all, and synthetic Hindi is hard for an
-  elderly listener to parse.
-- **Every test or replayed message must be labelled a drill**, in the
-  recipient's own language, at the top. `dispatch.py` enforces this in code
-  rather than leaving it to memory. A realistic emergency warning that isn't
-  real is something people act on.
-- **`dry_run` defaults to True.** Forgetting the flag gives you a preview, not
-  a message.
-- **The Twilio join code is a sandbox limitation, not a product step.** A real
-  WhatsApp Business sender needs no join phrase.
-
-### Demonstrating it when there's no heatwave
-
-There usually isn't one on demo day, and inventing weather until the thresholds
-trip proves nothing — any system can be made to alert on numbers chosen to make
-it alert.
-
-Instead, **replay a real event**. `src/risk/scenario.py` runs the actual
-recorded May 2024 heatwave (the most intense in the 30-year record) through the
-same engine, the same triggers, the same renderer. Only the weather source is
-swapped. `may_2010` and `may_2016` are also available.
-
-### Still missing
-
-- SMS and voice transport (both payloads are already produced by `render.py`)
-- the 36 voice recordings
-- a delivery log — `engine.alert_fingerprint()` exists for deduplication, but
-  nothing persists what actually went out
+The original `handover/` remains an archive. SMS and voice transport are still
+pending; this implementation delivers WhatsApp text.
 
 ---
 

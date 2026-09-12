@@ -14,7 +14,7 @@ export function SignupCorporatePage() {
 
   const [form, setForm] = useState({
     email: '', password: '', org_name: '', org_type: 'hospital' as CorporateOrgType,
-    contact_name: '', contact_phone: '', ward_id: '',
+    contact_name: '', contact_phone: '', ward_id: '', preferred_language: 'en', whatsapp_opt_in: false,
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -23,6 +23,12 @@ export function SignupCorporatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    let phone = form.contact_phone.trim().replace(/[\s()-]/g, '')
+    if (/^[6-9]\d{9}$/.test(phone)) phone = `+91${phone}`
+    if ((phone && !/^\+[1-9]\d{7,14}$/.test(phone)) || (form.whatsapp_opt_in && !phone)) {
+      setError(t('whatsapp.invalidPhone'))
+      return
+    }
     setLoading(true)
 
     // See supabase/schema.sql's handle_new_user() trigger - fields
@@ -37,7 +43,9 @@ export function SignupCorporatePage() {
           org_name: form.org_name,
           org_type: form.org_type,
           contact_name: form.contact_name,
-          contact_phone: form.contact_phone || null,
+          contact_phone: phone || null,
+          preferred_language: form.preferred_language,
+          whatsapp_opt_in: form.whatsapp_opt_in,
           ward_id: form.ward_id || null,
         },
       },
@@ -123,12 +131,15 @@ export function SignupCorporatePage() {
             />
             <input
               value={form.contact_phone}
+              type="tel"
+              autoComplete="tel"
               onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
               placeholder={t('auth.phone')}
               className="input"
             />
             <select
               value={form.ward_id}
+              required={form.org_type !== 'city_admin'}
               onChange={(e) => setForm({ ...form, ward_id: e.target.value })}
               className="input"
             >
@@ -137,6 +148,15 @@ export function SignupCorporatePage() {
                 <option key={w.ward_id} value={w.ward_id}>{w.ward_name}</option>
               ))}
             </select>
+            <label className="block text-[13px]">{t('whatsapp.language')}
+              <select className="input" value={form.preferred_language} onChange={(e) => setForm({ ...form, preferred_language: e.target.value })}>
+                <option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option>
+              </select>
+            </label>
+            <label className="flex gap-2 text-[13px]">
+              <input type="checkbox" checked={form.whatsapp_opt_in} onChange={(e) => setForm({ ...form, whatsapp_opt_in: e.target.checked })} />
+              {t('whatsapp.consent')}
+            </label>
             <input
               type="email"
               required

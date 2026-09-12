@@ -383,12 +383,17 @@ def test_weather_mortality_pipeline():
 
     for column in (
         "utci_c", "utci_stress_category", "utci_normal_c", "utci_anomaly_c",
-        "wbgt_shade_c", "heat_index_c", "tmax", "tmin",
+        "wbgt_shade_c", "tmax", "tmin",
         "afternoon_humidity_pct", "afternoon_wind_ms", "afternoon_solar_wm2",
         "alert_level", "group_levels", "elderly_per_100k",
     ):
         assert column in weather_df.columns
         assert weather_df[column].notna().all(), column
+
+    # The existing heat-index model intentionally returns None below 27C.
+    # A cool forecast day must not make this live integration check fail.
+    assert "heat_index_c" in weather_df.columns
+    assert weather_df["heat_index_c"].notna().equals(weather_df["afternoon_temp_c"] >= 27.0)
 
     # Citywide burden must be computed once per day, never summed across
     # wards - each ward row carries a city-scale figure, so summing 48 of
