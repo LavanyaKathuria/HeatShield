@@ -229,11 +229,13 @@ export function WardChoroplethMap({ wardsByDay, wardSummaries }: WardChoroplethM
       })
 
       setMapReady(true)
+      setError(null)
     })
 
     map.on('error', (e) => {
       console.error('MapLibre error', e)
-      if (mapRef.current === map) setError(t('map.errorLoadingBasemap'))
+      // Transient tile errors must not remove an already working heat layer.
+      if (mapRef.current === map && !map.getLayer(WARDS_FILL_LAYER)) setError(t('map.errorLoadingBasemap'))
     })
 
     mapRef.current = map
@@ -258,7 +260,7 @@ export function WardChoroplethMap({ wardsByDay, wardSummaries }: WardChoroplethM
 
     for (const [wardId, color] of colorByWard) {
       colorExpression.push(wardId, color)
-      const dim = attentionOnly && mapMode !== 'weather' && color === TIER_COLOR.normal
+      const dim = attentionOnly && mapMode !== 'weather' && color === TIER_COLOR.none
       dimExpression.push(wardId, dim ? 1 : 0)
     }
     colorExpression.push(NEUTRAL_FILL)
@@ -269,10 +271,11 @@ export function WardChoroplethMap({ wardsByDay, wardSummaries }: WardChoroplethM
     // (0.5-0.6) as an ambient/informational layer, not an alarm.
     const [baseOpacity, hoverOpacity] = mapMode === 'weather' ? [0.5, 0.6] : [0.75, 0.85]
 
-    map.setPaintProperty(WARDS_FILL_LAYER, 'fill-color', colorExpression as unknown as maplibregl.ExpressionSpecification)
+    // During source switching there are no cases; an empty match is invalid.
+    map.setPaintProperty(WARDS_FILL_LAYER, 'fill-color', colorByWard.size ? colorExpression as unknown as maplibregl.ExpressionSpecification : NEUTRAL_FILL)
     map.setPaintProperty(WARDS_FILL_LAYER, 'fill-opacity', [
       'case',
-      ['==', dimExpression, 1],
+      ['==', colorByWard.size ? dimExpression : 0, 1],
       0.08,
       ['boolean', ['feature-state', 'hover'], false],
       hoverOpacity,
@@ -312,11 +315,10 @@ export function WardChoroplethMap({ wardsByDay, wardSummaries }: WardChoroplethM
     else el.requestFullscreen()
   }
 
-  if (error) return <ErrorState message={error} />
-
   return (
     <div className="relative h-full w-full overflow-hidden">
       <div ref={containerRef} className="h-full w-full" />
+      {error && <div className="absolute left-4 top-28 z-10"><ErrorState message={error} /></div>}
 
       {mapReady && mapMode !== 'weather' && (
         <div

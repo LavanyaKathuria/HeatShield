@@ -41,14 +41,15 @@ async function get<T>(path: string, params?: Params): Promise<T> {
 }
 
 export const api = {
-  wardPriority: (forecastDays = 5) =>
-    get<WardPriorityResponse>('/ward-priority', { forecast_days: forecastDays }),
+  wardPriority: (forecastDays = 5, source = 'live') =>
+    get<WardPriorityResponse>('/ward-priority', { forecast_days: forecastDays, source }),
 
-  wardForecastTimeline: (forecastDays = 5) =>
+  wardForecastTimeline: (forecastDays = 5, source = 'live') =>
     get<WardForecastTimelineResponse>('/ward-forecast-timeline', {
       forecast_days: forecastDays,
+      source,
     }),
 
-  heatEvent: (forecastDays = 5) =>
-    get<HeatEventResponse>('/heat-event', { forecast_days: forecastDays }),
+  heatEvent: (forecastDays = 5, source = 'live') =>
+    get<HeatEventResponse>('/heat-event', { forecast_days: forecastDays, source }),
 }

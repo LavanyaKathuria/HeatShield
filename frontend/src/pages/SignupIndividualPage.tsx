@@ -20,6 +20,12 @@ export function SignupIndividualPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    let phone = form.phone.trim().replace(/[\s()-]/g, '')
+    if (/^[6-9]\d{9}$/.test(phone)) phone = `+91${phone}`
+    if (phone && !/^\+[1-9]\d{7,14}$/.test(phone)) {
+      setError(t('whatsapp.invalidPhone'))
+      return
+    }
     setLoading(true)
 
     // All profile fields travel as signUp metadata, not a follow-up
@@ -33,7 +39,7 @@ export function SignupIndividualPage() {
         data: {
           account_kind: 'individual',
           full_name: form.full_name,
-          phone: form.phone || null,
+          phone: phone || null,
           preferred_language: form.preferred_language,
           ward_id: form.ward_id || null,
           age: form.age || null,
@@ -123,6 +129,8 @@ export function SignupIndividualPage() {
             />
             <input
               value={form.phone}
+              type="tel"
+              autoComplete="tel"
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder={t('auth.phone')}
               className="input"

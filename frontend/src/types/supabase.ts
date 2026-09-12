@@ -11,6 +11,7 @@ export interface ProfileRow {
   ward_id: string | null
   age: number | null
   is_outdoor_worker: boolean
+  whatsapp_opt_in?: boolean
   created_at: string
 }
 

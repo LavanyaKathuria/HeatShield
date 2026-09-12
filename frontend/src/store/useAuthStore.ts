@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useMapStore } from '@/store/useMapStore'
 import type { Session } from '@supabase/supabase-js'
 import type { ProfileRow, CorporateAccountRow } from '@/types/supabase'
 import type { AccountKind, Role } from '@/types/domain'
@@ -34,7 +35,7 @@ interface AuthState {
   reset: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   accountKind: null,
   profile: null,
@@ -43,7 +44,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   authLoading: true,
   profileLoading: true,
 
-  setSession: (session) => set({ session }),
+  setSession: (session) => {
+    if (session?.user.id !== get().session?.user.id) useMapStore.getState().setSource('live')
+    set({ session })
+  },
   setProfile: (profile) => set({ profile }),
   setCorporateAccount: (corporateAccount) => set({ corporateAccount }),
   setAccountKind: (accountKind) => set({ accountKind }),

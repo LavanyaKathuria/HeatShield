@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { LocationControl } from '@/components/layout/LocationControl'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { ProfileMenu } from '@/components/layout/ProfileMenu'
+import { HistoricalReplayControl } from '@/components/layout/HistoricalReplayControl'
+import { useMapStore } from '@/store/useMapStore'
 
 interface DashboardShellProps {
   children: ReactNode
@@ -16,11 +18,12 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children, navCenter, fullBleed }: DashboardShellProps) {
   const { t } = useTranslation()
+  const source = useMapStore((s) => s.source)
 
   return (
     <div className="flex h-screen flex-col" style={{ background: 'var(--surface-page)' }}>
       <header
-        className="z-20 flex h-14 flex-shrink-0 items-center gap-4 border-b px-4"
+        className="z-20 flex min-h-14 flex-wrap flex-shrink-0 items-center gap-3 border-b px-4 py-2"
         style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-card)' }}
       >
         <div className="flex items-center gap-2">
@@ -36,11 +39,15 @@ export function DashboardShell({ children, navCenter, fullBleed }: DashboardShel
 
         <div className="flex-1" />
 
+        <HistoricalReplayControl />
         {navCenter}
 
         <LanguageSwitcher />
         <ProfileMenu />
       </header>
+      {source === 'may_2024' && <div className="shrink-0 border-b px-4 py-2 text-[12px]" style={{ background: 'var(--risk-warning-soft)', color: 'var(--text-primary)' }}>
+        <strong>{t('replay.banner')}</strong> {t('replay.scope')}
+      </div>}
       {fullBleed ? (
         <main className="relative flex-1 overflow-hidden">{children}</main>
       ) : (
